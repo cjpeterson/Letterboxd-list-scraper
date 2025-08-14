@@ -91,7 +91,8 @@ def repeated_request(url):
                 time.sleep(current_delay)
                 current_delay = min(current_delay * 2, max_delay)
             else:
-                #print("Max retries exceeded. Giving up.")
+                print("Max retries exceeded. Giving up.")
                 raise # Re-raise the last exception
 
+    print(f"Request failed after all retries. Server status code: {response.status_code}")
     raise requests.exceptions.RequestException(f"Request failed after all retries. Server status code: {response.status_code}")
