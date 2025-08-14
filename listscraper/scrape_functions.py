@@ -237,18 +237,20 @@ def scrape_film(film_html, not_found):
     r = requests.get(f'https://letterboxd.com/csi/film/{movie}/stats/')    # Stats page of said movie
     stats_soup = BeautifulSoup(r.content, 'lxml')
 
+    tooltips = stats_soup.find_all('a', {'class': 'tooltip'})
+
     # Get number of people that have watched the movie
-    watches = stats_soup.find('a', {'class': 'has-icon icon-watched icon-16 tooltip'})["title"]
+    watches = tooltips[0]["title"]
     watches = re.findall(r'\d+', watches)    # Find the number from string
     film_dict["Watches"] = int(''.join(watches))          # Filter out commas from large numbers
 
     # Get number of film appearances in lists
-    list_appearances = stats_soup.find('a', {'class': 'has-icon icon-list icon-16 tooltip'})["title"]
+    list_appearances = tooltips[1]["title"]
     list_appearances = re.findall(r'\d+', list_appearances) 
     film_dict["List_appearances"] = int(''.join(list_appearances))
 
     # Get number of people that have liked the movie
-    likes = stats_soup.find('a', {'class': 'has-icon icon-like icon-liked icon-16 tooltip'})["title"]
+    likes = tooltips[2]["title"]
     likes = re.findall(r'\d+', likes)
     film_dict["Likes"] = int(''.join(likes))
 
