@@ -126,6 +126,8 @@ def scrape_film(film_html, not_found):
     film_card = film_html.find('div').get('data-target-link')[1:]
     film_url = _domain + film_card
     filmget = requests.get(film_url)
+    if filmget.status_code == 429:
+        print("Server returned code 429 for spamming requests too quickly.")
     film_soup = BeautifulSoup(filmget.content, 'html.parser')
 
     # Finding the film name
