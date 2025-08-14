@@ -1,7 +1,7 @@
-from listscraper.utility_functions import val2stars, stars2val
+from listscraper.utility_functions import val2stars, stars2val, repeated_request
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-import requests
+#import requests
 import numpy as np
 import re
 
@@ -70,7 +70,7 @@ def scrape_page(list_url, og_list_url, output_file_extension, list_type, quiet=F
     """
     
     page_films = []
-    page_response = requests.get(list_url)
+    page_response = repeated_request(list_url)
     
     # Check to see page was downloaded correctly
     if page_response.status_code != 200:
@@ -125,9 +125,7 @@ def scrape_film(film_html, not_found):
     # Obtaining release year, director and average rating of the movie
     film_card = film_html.find('div').get('data-target-link')[1:]
     film_url = _domain + film_card
-    filmget = requests.get(film_url)
-    if filmget.status_code == 429:
-        print("Server returned code 429 for spamming requests too quickly.")
+    filmget = repeated_request(film_url)
     film_soup = BeautifulSoup(filmget.content, 'html.parser')
 
     # Finding the film name
@@ -236,7 +234,7 @@ def scrape_film(film_html, not_found):
 
     # Getting number of watches, appearances in lists and number of likes (requires new link) ## 
     movie = film_url.split('/')[-2]                                        # Movie title in URL
-    r = requests.get(f'https://letterboxd.com/csi/film/{movie}/stats/')    # Stats page of said movie
+    r = repeated_request(f'https://letterboxd.com/csi/film/{movie}/stats/')    # Stats page of said movie
     stats_soup = BeautifulSoup(r.content, 'lxml')
 
     tooltips = stats_soup.find_all('a', {'class': 'tooltip'})
@@ -257,7 +255,7 @@ def scrape_film(film_html, not_found):
     film_dict["Likes"] = int(''.join(likes))
 
     # Getting info on rating histogram (requires new link)
-    r = requests.get(f'https://letterboxd.com/csi/film/{movie}/rating-histogram/')    # Rating histogram page of said movie
+    r = repeated_request(f'https://letterboxd.com/csi/film/{movie}/rating-histogram/')    # Rating histogram page of said movie
     hist_soup = BeautifulSoup(r.content, 'lxml')
 
     # Get number of fans. Amount is given in 'K' notation, so if relevant rounded off to full thousands
