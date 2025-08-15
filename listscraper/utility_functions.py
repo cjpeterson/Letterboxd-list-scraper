@@ -1,6 +1,7 @@
 # Some utility functions are stored here
 import requests
 import time
+import random
 
 def stars2val(stars, not_found):
     """
@@ -48,7 +49,7 @@ def val2stars(val, not_found):
 
 def repeated_request(url):
     """
-    Makes a request to a URL with exponential backoff for 429 errors.
+    Makes a request to a URL with a backoff for 429 errors.
 
     Args:
         url (str): The URL to make a request to.
@@ -59,23 +60,29 @@ def repeated_request(url):
     Raises:
         requests.exceptions.RequestException: If the request fails after all retries.
     """
-    retries = 0
-    max_retries = 5
-    current_delay = 8
-    max_delay = 120  # 2 minutes in seconds
+    retry_seconds = [5,45,120]
+    retry_index = 0
 
-    while retries < max_retries:
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
+    }
+
+    while retry_index < len(retry_seconds):
         try:
-            response = requests.get(url)
+            response = requests.get(url, headers=headers)
+            # Wait a random amount of seconds, with an average of about 1 second
+            wait_time = random.gauss(mu=1.0, sigma=1.0)
+            if wait_time < 0.3:
+                wait_time = 0.6 - wait_time
+            time.sleep(wait_time)
             
             # Check for a 429 "Too Many Requests" error
             if response.status_code == 429:
+                current_delay = retry_seconds[retry_index]
                 print(f"Received 429 response. Retrying in {current_delay} seconds...")
                 time.sleep(current_delay)
+                retry_index += 1
                 
-                # Double the delay for the next attempt, capped at max_delay
-                current_delay = min(current_delay * 2, max_delay)
-                retries += 1
                 continue  # Skip to the next iteration of the while loop
             
             # If the request is successful, or another error occurs, break the loop
@@ -85,11 +92,11 @@ def repeated_request(url):
             
         except requests.exceptions.RequestException as e:
             print(f"An error occurred during request: {e}")
-            retries += 1
-            if retries < max_retries:
+            if retry_index < len(retry_seconds):
+                current_delay = retry_seconds[retry_index]
                 print(f"Retrying in {current_delay} seconds...")
                 time.sleep(current_delay)
-                current_delay = min(current_delay * 2, max_delay)
+                retry_index += 1
             else:
                 print("Max retries exceeded. Giving up.")
                 raise # Re-raise the last exception
