@@ -1,7 +1,6 @@
 from listscraper.utility_functions import val2stars, stars2val, repeated_request
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-#import requests
 import numpy as np
 import re
 
@@ -133,9 +132,9 @@ def scrape_film(film_html, not_found):
     
     # Try to find release year, handle cases where it's missing
     try:
-        release_years = film_soup.find_all('div', class_='releaseyear')
-        if len(release_years) > 1:  # Check if we have enough elements
-            year_text = release_years[1].find('a').text.strip()
+        release_years = film_soup.find_all('span', class_='releasedate')
+        if len(release_years) > 0:  # Check if we have enough elements
+            year_text = release_years[0].find('a').text.strip()
             release_year = int(year_text) if year_text else 0
         else:
             release_year = 0
