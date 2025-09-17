@@ -51,7 +51,7 @@ def repeated_request(url):
     """
     Makes a request to a URL with a backoff for 429 errors.
 
-    Args:
+    Parameters:
         url (str): The URL to make a request to.
 
     Returns:
@@ -70,10 +70,9 @@ def repeated_request(url):
     while retry_index < len(retry_seconds):
         try:
             response = requests.get(url, headers=headers)
-            # Wait a random amount of seconds, with an average of about 1 second
-            wait_time = random.gauss(mu=1.0, sigma=1.0)
-            if wait_time < 0.3:
-                wait_time = 0.6 - wait_time
+            
+            # Wait a random amount of seconds, with an average of .75 seconds
+            wait_time = random.gauss(mu=0.75, sigma=0.08)
             time.sleep(wait_time)
             
             # Check for a 429 "Too Many Requests" error
@@ -87,7 +86,6 @@ def repeated_request(url):
             
             # If the request is successful, or another error occurs, break the loop
             response.raise_for_status()
-            #print("Request successful!")
             return response
             
         except requests.exceptions.RequestException as e:
